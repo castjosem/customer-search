@@ -3,8 +3,10 @@
 import core
 import unittest
 
+from core.data_parser import ParseError
 from core.data_parser import Parser
 from nose.tools import istest
+from nose.tools import assert_raises
 from nose.tools import eq_
 
 class ParserTest(unittest.TestCase):
@@ -16,9 +18,20 @@ class ParserTest(unittest.TestCase):
             '{"latitude": "51.92893", "user_id": 1, "name": "Alice Cahill", "longitude": "-10.27699"}', 
             '{"latitude": "51.8856167", "user_id": 2, "name": "Ian McArdle", "longitude": "-10.4240951"}'
         ]
-
         parser = Parser()
         for raw_data in data:
             customers = parser.parse_customer_spatial_data([raw_data])
             size = len(customers)
             self.assertGreater(size, 0)
+
+    @istest
+    def it_raises_error_on_invalid_raw_data(self):
+        invalid_data = [
+            '{"latitude": "52.986375", "user_id": 12, "name": "Christina McArdle"',
+            '{"user_id": 1, "name": "Alice Cahill", "longitude": "-10.27699"}', 
+            '{"latitude": "51.8856167", "longitude": "-10.4240951"}'
+        ]
+
+        parser = Parser()
+        for raw_data in invalid_data:
+            assert_raises(ParseError, parser.parse_customer_spatial_data, [raw_data])
